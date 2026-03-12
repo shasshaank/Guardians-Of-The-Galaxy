@@ -1,0 +1,368 @@
+/* =========================================================================
+   Orbital Guardian — App Stylesheet
+   Dark space theme with cyan/blue accents
+   ========================================================================= */
+
+/* ── CSS reset & base ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary:   #0a0a0f;
+  --bg-surface:   #0f0f1a;
+  --bg-card:      #12121f;
+  --border:       #1e2040;
+  --accent-cyan:  #00e5ff;
+  --accent-blue:  #4fc3f7;
+  --accent-purple:#7c4dff;
+  --text-primary: #e8eaf6;
+  --text-muted:   #7986cb;
+  --risk-critical:#f44336;
+  --risk-warning: #ff9800;
+  --risk-safe:    #4caf50;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── App shell ──────────────────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  font-size: 2rem;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.04em;
+}
+
+.header-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--risk-safe);
+  animation: blink 2s ease-in-out infinite;
+}
+
+.status-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--risk-safe);
+  letter-spacing: 0.12em;
+}
+
+/* ── Dashboard grid ─────────────────────────────────────────────────────── */
+.dashboard {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 0;
+  overflow: hidden;
+}
+
+.globe-section {
+  display: flex;
+  flex-direction: column;
+  background: #000008;
+  border-right: 1px solid var(--border);
+}
+
+.globe-container {
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 120px);
+}
+
+.globe-hint {
+  text-align: center;
+  padding: 8px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Right panels column ────────────────────────────────────────────────── */
+.panels-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+/* ── Generic panel ──────────────────────────────────────────────────────── */
+.panel {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  margin-bottom: 14px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.action-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent-cyan);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  margin-bottom: 14px;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--accent-cyan);
+  color: var(--bg-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-btn--purple {
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+.action-btn--purple:hover:not(:disabled) {
+  background: var(--accent-purple);
+  color: #fff;
+}
+
+/* ── Error box ──────────────────────────────────────────────────────────── */
+.error-box {
+  background: rgba(244, 67, 54, 0.12);
+  border: 1px solid var(--risk-critical);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--risk-critical);
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+}
+
+/* ── Risk card ──────────────────────────────────────────────────────────── */
+.risk-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--bg-card);
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.risk-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+
+.risk-detail:last-of-type {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.detail-mono {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.risk-hint {
+  margin-top: 10px;
+  font-size: 0.80rem;
+  color: var(--text-muted);
+}
+
+/* ── Maneuver card ──────────────────────────────────────────────────────── */
+.maneuver-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--bg-card);
+}
+
+.maneuver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.maneuver-type {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.metric-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.maneuver-explanation {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* ── Placeholder text ───────────────────────────────────────────────────── */
+.placeholder-text {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.app-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.footer-sep {
+  color: var(--border);
+}
+
+/* ── Animations ─────────────────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.pulse {
+  animation: pulseGlow 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+  50%       { box-shadow: 0 0 12px 4px rgba(244, 67, 54, 0.25); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+  .globe-container {
+    height: 50vw;
+    min-height: 280px;
+  }
+  .globe-section {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
