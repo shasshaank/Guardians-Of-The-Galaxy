@@ -10,7 +10,7 @@ const RISK_COLORS = {
 };
 
 /**
- * ManeuverPanel — displays AI-generated avoidance maneuver recommendations.
+ * ManeuverPanel — displays calculated avoidance maneuver recommendations.
  *
  * @param {object}   props
  * @param {object}   [props.recommendation]  – Pre-loaded recommendation (optional)
@@ -63,7 +63,7 @@ export default function ManeuverPanel({ recommendation, threatParams, onDataChan
 
   return (
     <div className="panel maneuver-panel">
-      <h2 className="panel-title">🤖 AI Maneuver Advisor</h2>
+      <h2 className="panel-title">⚙️ Orbital Maneuver Advisor</h2>
 
       <button
         className="action-btn action-btn--purple"
@@ -150,20 +150,20 @@ export default function ManeuverPanel({ recommendation, threatParams, onDataChan
             </details>
           </div>
 
-          {/* AI explanation */}
+          {/* Maneuver explanation */}
           <p className="maneuver-explanation">{primary.explanation}</p>
         </div>
       )}
 
       {!primary && !loading && threatParams && (
         <p className="placeholder-text">
-          Threat vector populated! Press "Get Recommendation" to generate an AI-powered avoidance maneuver plan.
+          Threat vector populated! Press "Get Recommendation" to generate a calculated avoidance maneuver plan.
         </p>
       )}
 
       {!primary && !loading && !threatParams && (
         <p className="placeholder-text">
-          Run a collision check on two satellites first to enable the AI maneuver advisor.
+          Run a collision check on two satellites first to enable the maneuver advisor.
         </p>
       )}
     </div>

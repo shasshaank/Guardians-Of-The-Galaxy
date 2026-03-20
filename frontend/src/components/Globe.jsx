@@ -73,7 +73,7 @@ export default function Globe({ children }) {
       {children}
 
       {/* User interaction */}
-      <OrbitControls enablePan={false} minDistance={1.5} maxDistance={8} />
+      <OrbitControls enablePan={true} minDistance={1.5} maxDistance={8} />
     </Canvas>
   );
 }

@@ -39,7 +39,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 *.pyo
-
+venv/
+.venv/
+env/
+.env/
 # ── Node / React ──────────────────────────────────────────────────────────
 node_modules/
 frontend/build/

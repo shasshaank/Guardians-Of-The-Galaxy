@@ -87,7 +87,7 @@ export default function App() {
           <div>
             <h1 className="header-title">Orbital Guardian</h1>
             <p className="header-subtitle">
-              AI-Powered Space Debris Collision Prediction &amp; Avoidance System
+              Physics-Driven Space Debris Collision Prediction &amp; Avoidance System
             </p>
           </div>
         </div>
@@ -113,7 +113,11 @@ export default function App() {
                 <SatelliteOrbit path={collisionResult.path_b} color="#ff9800" />
               )}
               {collisionResult && collisionResult.closest_event && (
-                <CollisionMarker event={collisionResult.closest_event} />
+                <CollisionMarker 
+                  event={collisionResult.closest_event} 
+                  satA={selectedSatA} 
+                  satB={selectedSatB} 
+                />
               )}
             </Globe>
           </div>
@@ -145,7 +149,7 @@ export default function App() {
                   {pipelineStage === 'propagating' ? '⏳ Orbits' : '✅ Orbits'}
                 </div>
                 <div className={`step ${pipelineStage === 'complete' ? 'done' : pipelineStage === 'computing_maneuver' ? 'active' : ''}`}>
-                  {pipelineStage === 'computing_maneuver' ? '⏳ AI' : ['idle', 'fetching_tle', 'propagating'].includes(pipelineStage) ? 'AI Analyser' : '✅ AI'}
+                  {pipelineStage === 'computing_maneuver' ? '⏳ Calc' : ['idle', 'fetching_tle', 'propagating'].includes(pipelineStage) ? 'Analyzer' : '✅ Calc'}
                 </div>
               </div>
             )}
