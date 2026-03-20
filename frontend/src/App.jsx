@@ -3,7 +3,7 @@ import Globe from './components/Globe';
 import SatelliteLayer from './components/SatelliteLayer';
 import CollisionAlert from './components/CollisionAlert';
 import ManeuverPanel from './components/ManeuverPanel';
-import SatelliteOrbit from "./components/SatelliteOrbit";
+import SatelliteOrbit, { CollisionMarker } from "./components/SatelliteOrbit";
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -23,16 +23,51 @@ export default function App() {
   const [satA, setSatA] = useState(null);
   const [satB, setSatB] = useState(null);
   const [collisionResult, setCollisionResult] = useState(null);
+  
+  // Pipeline State: 'idle' | 'fetching_tle' | 'propagating' | 'computing_maneuver' | 'complete'
+  const [pipelineStage, setPipelineStage] = useState('idle');
 
   useEffect(() => {
+    setPipelineStage('fetching_tle');
     fetch(`${API_URL}/satellites?limit=500`)
       .then(res => res.json())
-      .then(data => setSatellites(data))
-      .catch(err => console.error("Failed to fetch satellites:", err));
+      .then(data => {
+        setSatellites(data);
+        setPipelineStage('idle');
+      })
+      .catch(err => {
+        console.error("Failed to fetch satellites:", err);
+        setPipelineStage('idle');
+      });
   }, []);
 
   const selectedSatA = satellites.find(s => s.name === satA);
   const selectedSatB = satellites.find(s => s.name === satB);
+
+  function handleScenario(scenarioType) {
+    if (satellites.length < 2) return;
+    
+    let a, b;
+    if (scenarioType === 'ISS_DEBRIS') {
+      a = satellites.find(s => s.name.includes('ISS')) || satellites[0];
+      // Pick Cosmos or any known debris generator
+      b = satellites.find(s => s.name.includes('COSMOS')) || satellites[satellites.length - 1];
+    } else if (scenarioType === 'STARLINK') {
+      const starlinks = satellites.filter(s => s.name.includes('STARLINK'));
+      a = starlinks[0] || satellites[0];
+      b = starlinks[1] || satellites[1];
+    } else if (scenarioType === 'SAFE') {
+      a = satellites.find(s => s.name.includes('AQUA')) || satellites[2];
+      b = satellites.find(s => s.name.includes('TERRA')) || satellites[3];
+    }
+
+    if (a && b) {
+      setSatA(a.name);
+      setSatB(b.name);
+      // Wait a tick for state to settle then start propagating
+      setTimeout(() => setPipelineStage('propagating'), 100);
+    }
+  }
 
   const threatParams = collisionResult && collisionResult.closest_event && selectedSatA ? {
     line1: selectedSatA.line1,
@@ -57,8 +92,10 @@ export default function App() {
           </div>
         </div>
         <div className="header-status">
-          <span className="status-dot" />
-          <span className="status-text">LIVE</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="status-dot" />
+            <span className="status-text">LIVE</span>
+          </div>
         </div>
       </header>
 
@@ -69,6 +106,15 @@ export default function App() {
           <div className="globe-container">
             <Globe>
               <SatelliteLayer group="active" limit={60} />
+              {collisionResult && collisionResult.path_a && (
+                <SatelliteOrbit path={collisionResult.path_a} color="#ff3366" />
+              )}
+              {collisionResult && collisionResult.path_b && (
+                <SatelliteOrbit path={collisionResult.path_b} color="#ff9800" />
+              )}
+              {collisionResult && collisionResult.closest_event && (
+                <CollisionMarker event={collisionResult.closest_event} />
+              )}
             </Globe>
           </div>
           <p className="globe-hint">
@@ -78,6 +124,33 @@ export default function App() {
 
         {/* Right column — control panels */}
         <aside className="panels-column">
+          
+          {/* Demo Scenarios Panel */}
+          <div className="panel">
+            <h2 className="panel-title">🎬 Demo Scenarios</h2>
+            <div className="satellite-selector-wrapper">
+              <select onChange={(e) => handleScenario(e.target.value)} defaultValue="">
+                <option value="" disabled>Select a guided scenario...</option>
+                <option value="ISS_DEBRIS">ISS vs Unknown Debris (CRITICAL)</option>
+                <option value="STARLINK">Starlink Cluster Conjunction</option>
+                <option value="SAFE">Safe Pass (Baseline)</option>
+              </select>
+            </div>
+            {pipelineStage !== 'idle' && (
+              <div className="pipeline-tracker">
+                <div className={`step ${pipelineStage !== 'idle' ? 'done' : ''}`}>
+                  {pipelineStage === 'fetching_tle' ? '⏳' : '✅'} TLE
+                </div>
+                <div className={`step ${['computing_maneuver', 'complete'].includes(pipelineStage) ? 'done' : pipelineStage === 'propagating' ? 'active' : ''}`}>
+                  {pipelineStage === 'propagating' ? '⏳ Orbits' : '✅ Orbits'}
+                </div>
+                <div className={`step ${pipelineStage === 'complete' ? 'done' : pipelineStage === 'computing_maneuver' ? 'active' : ''}`}>
+                  {pipelineStage === 'computing_maneuver' ? '⏳ AI' : ['idle', 'fetching_tle', 'propagating'].includes(pipelineStage) ? 'AI Analyser' : '✅ AI'}
+                </div>
+              </div>
+            )}
+          </div>
+
           <CollisionAlert 
             satellites={satellites}
             satA={satA}
@@ -88,10 +161,14 @@ export default function App() {
             selectedSatB={selectedSatB}
             alertData={collisionResult}
             onDataChange={setCollisionResult}
+            pipelineStage={pipelineStage}
+            setPipelineStage={setPipelineStage}
           />
           <ManeuverPanel 
             threatParams={threatParams}
             onDataChange={() => {}}
+            pipelineStage={pipelineStage}
+            setPipelineStage={setPipelineStage}
           />
         </aside>
       </main>
@@ -100,9 +177,11 @@ export default function App() {
       <footer className="app-footer">
         <span>Orbital Guardian &copy; {new Date().getFullYear()}</span>
         <span className="footer-sep">·</span>
-        <span>Data: Celestrak / NORAD TLE</span>
+        <span>TLE Source: Celestrak</span>
         <span className="footer-sep">·</span>
-        <span>IIT Hyderabad Hackathon</span>
+        <span>Physics: SGP4</span>
+        <span className="footer-sep">·</span>
+        <span>IIT Hyderabad Hackathon Demo</span>
       </footer>
     </div>
   );

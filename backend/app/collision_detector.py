@@ -63,6 +63,8 @@ def calculate_closest_approach(
                 "distance_km": round(distance, 3),
                 "position_a": pa["position_km"],
                 "position_b": pb["position_km"],
+                "location_a": {"lat": pa["lat"], "lon": pa["lon"], "alt_km": pa["alt_km"]},
+                "location_b": {"lat": pb["lat"], "lon": pb["lon"], "alt_km": pb["alt_km"]},
             }
 
     risk_level = _classify_risk(min_distance, threshold_km)
@@ -71,6 +73,8 @@ def calculate_closest_approach(
         "min_distance_km": round(min_distance, 3) if min_distance != float("inf") else None,
         "risk_level": risk_level,
         "closest_event": closest_event,
+        "path_a": positions_a,
+        "path_b": positions_b,
     }
 
 

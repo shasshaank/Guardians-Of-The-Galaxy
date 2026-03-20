@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -17,12 +17,18 @@ const RISK_COLORS = {
  * @param {object}   [props.threatParams]    – Override default demo parameters
  * @param {function} [props.onDataChange]    – Called with new recommendation after fetch
  */
-export default function ManeuverPanel({ recommendation, threatParams, onDataChange }) {
+export default function ManeuverPanel({ recommendation, threatParams, onDataChange, pipelineStage, setPipelineStage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(recommendation || null);
 
   const params = threatParams;
+
+  useEffect(() => {
+    if (pipelineStage === 'computing_maneuver' && threatParams) {
+      fetchRecommendation();
+    }
+  }, [pipelineStage, threatParams]);
 
   async function fetchRecommendation() {
     if (!params) return;
@@ -41,15 +47,19 @@ export default function ManeuverPanel({ recommendation, threatParams, onDataChan
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       const data = await res.json();
       setResult(data);
-      onDataChange && onDataChange(data);
+      if (onDataChange) onDataChange(data);
+      if (pipelineStage === 'computing_maneuver') setPipelineStage('complete');
     } catch (err) {
       setError(err.message);
+      if (pipelineStage === 'computing_maneuver') setPipelineStage('idle');
     } finally {
       setLoading(false);
     }
   }
 
-  const riskColor = result ? (RISK_COLORS[result.risk_level] || '#9e9e9e') : '#9e9e9e';
+  const primary = result ? result.primary : null;
+  const tradeoffs = result && result.tradeoffs ? result.tradeoffs : [];
+  const riskColor = primary ? (RISK_COLORS[primary.risk_level] || '#9e9e9e') : '#9e9e9e';
 
   return (
     <div className="panel maneuver-panel">
@@ -65,55 +75,93 @@ export default function ManeuverPanel({ recommendation, threatParams, onDataChan
 
       {error && <div className="error-box">⚠ {error}</div>}
 
-      {result && (
+      {primary && (
         <div className="maneuver-card">
           {/* Header row */}
           <div className="maneuver-header">
-            <span className="maneuver-type">{result.maneuver_type}</span>
+            <span className="maneuver-type">{primary.maneuver_type}</span>
             <span className="risk-badge" style={{ background: riskColor }}>
-              {result.risk_level} RISK
+              {primary.risk_level} RISK
             </span>
           </div>
 
           {/* Key metrics grid */}
           <div className="metrics-grid">
-            <MetricBox label="Δv" value={`${result.delta_v_m_s} m/s`} />
-            <MetricBox label="Fuel Cost" value={`${result.estimated_fuel_cost_percent}%`} />
+            <MetricBox label="Δv" value={`${primary.delta_v_m_s} m/s`} />
+            <MetricBox label="Fuel Cost" value={`${primary.estimated_fuel_cost_percent}%`} />
             <MetricBox
               label="Confidence"
-              value={`${(result.confidence_score * 100).toFixed(1)}%`}
+              value={`${(primary.confidence_score * 100).toFixed(1)}%`}
             />
-            <MetricBox label="New Miss Dist." value={`${result.new_miss_distance_km} km`} />
+            <MetricBox label="New Miss Dist." value={`${primary.new_miss_distance_km} km`} />
           </div>
 
-          {/* Burn direction */}
-          <div className="risk-detail">
-            <span className="detail-label">Burn Direction</span>
-            <span className="detail-value detail-mono">
-              ({result.burn_direction.x},&nbsp;
-              {result.burn_direction.y},&nbsp;
-              {result.burn_direction.z})
+          {/* Burn direction human-readable */}
+          <div className="risk-detail" style={{ alignItems: "center" }}>
+            <span className="detail-label">Burn Vector</span>
+            <span className="detail-value" style={{ fontWeight: 600, color: "var(--accent-cyan)" }}>
+              ↱ {Math.abs(primary.burn_direction.z) > 0.8 ? 'Radial Outward' : 'Cross-track (+Normal)'}
             </span>
           </div>
 
           {/* Execution window */}
           <div className="risk-detail">
             <span className="detail-label">Execute By</span>
-            <span className="detail-value">{result.time_to_execute}</span>
+            <span className="detail-value">{primary.time_to_execute}</span>
+          </div>
+
+          <div className="advanced-details">
+            <details>
+              <summary>Advanced Telemetry & Trade-offs</summary>
+              <div className="advanced-details-content">
+                <div className="risk-detail">
+                  <span className="detail-label">Raw Unit Vector</span>
+                  <span className="detail-value detail-mono">
+                    ({primary.burn_direction.x}, {primary.burn_direction.y}, {primary.burn_direction.z})
+                  </span>
+                </div>
+                
+                {tradeoffs.length > 0 && (
+                  <table className="tradeoff-table">
+                    <thead>
+                      <tr>
+                        <th>Option</th>
+                        <th>Δv</th>
+                        <th>Miss Dist.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="tradeoff-row--highlight">
+                        <td className="tradeoff-type">{primary.maneuver_type}</td>
+                        <td>{primary.delta_v_m_s}</td>
+                        <td>{primary.new_miss_distance_km}km</td>
+                      </tr>
+                      {tradeoffs.map((t, i) => (
+                        <tr key={i}>
+                          <td style={{ color: "var(--text-muted)" }}>{t.maneuver_type}</td>
+                          <td>{t.delta_v_m_s}</td>
+                          <td>{t.new_miss_distance_km}km</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </details>
           </div>
 
           {/* AI explanation */}
-          <p className="maneuver-explanation">{result.explanation}</p>
+          <p className="maneuver-explanation">{primary.explanation}</p>
         </div>
       )}
 
-      {!result && !loading && threatParams && (
+      {!primary && !loading && threatParams && (
         <p className="placeholder-text">
           Threat vector populated! Press "Get Recommendation" to generate an AI-powered avoidance maneuver plan.
         </p>
       )}
 
-      {!result && !loading && !threatParams && (
+      {!primary && !loading && !threatParams && (
         <p className="placeholder-text">
           Run a collision check on two satellites first to enable the AI maneuver advisor.
         </p>

@@ -48,7 +48,7 @@ def recommend_maneuver(
     satellite_line2: str,
     threat_direction: dict,
     threat_distance_km: float,
-) -> ManeuverRecommendation:
+) -> dict:
     """
     Generate an avoidance maneuver recommendation for a threatened satellite.
 
@@ -147,17 +147,57 @@ def recommend_maneuver(
         "z": round(float(burn_unit[2]), 6),
     }
 
-    return ManeuverRecommendation(
+    primary = ManeuverRecommendation(
         maneuver_type=maneuver_type,
         burn_direction=burn_direction,
         delta_v_m_s=round(delta_v_m_s, 4),
-        estimated_fuel_cost_percent=fuel_pct,
+        estimated_fuel_cost_percent=max(0.01, fuel_pct),
         confidence_score=round(confidence, 3),
         time_to_execute=time_window,
         new_miss_distance_km=round(new_miss_km, 2),
         risk_level=risk_level,
         explanation=explanation,
     )
+
+    alt_dv = delta_v_m_s * 3.5
+    alt_miss = _estimate_new_miss_distance(threat_distance_km, alt_dv)
+    opt_max_sep = ManeuverRecommendation(
+        maneuver_type="Max Separation Burn",
+        burn_direction=burn_direction,
+        delta_v_m_s=round(alt_dv, 4),
+        estimated_fuel_cost_percent=round((alt_dv / _TYPICAL_BUDGET_M_S) * 100, 2),
+        confidence_score=round(max(0.1, confidence - 0.15), 3),
+        time_to_execute=time_window,
+        new_miss_distance_km=round(alt_miss, 2),
+        risk_level=_risk_level_from_dv(alt_dv),
+        explanation="Aggressive maneuver to ensure maximum clearance. Consumes much more fuel."
+    )
+
+    rad_dv = delta_v_m_s * 1.5
+    rad_miss = _estimate_new_miss_distance(threat_distance_km, rad_dv) * 0.7
+    try:
+        pos_vec = np.array([state["position_km"]["x"], state["position_km"]["y"], state["position_km"]["z"]])
+        pos_norm = np.linalg.norm(pos_vec)
+        rad_unit = (pos_vec / pos_norm) if pos_norm > 1e-9 else -threat_unit
+    except Exception:
+        rad_unit = np.array([0.0, 0.0, 1.0])
+
+    opt_fast = ManeuverRecommendation(
+        maneuver_type="Emergency Radial Burn",
+        burn_direction={"x": round(float(rad_unit[0]), 6), "y": round(float(rad_unit[1]), 6), "z": round(float(rad_unit[2]), 6)},
+        delta_v_m_s=round(rad_dv, 4),
+        estimated_fuel_cost_percent=round((rad_dv / _TYPICAL_BUDGET_M_S) * 100, 2),
+        confidence_score=round(max(0.1, confidence - 0.25), 3),
+        time_to_execute="Immediate",
+        new_miss_distance_km=round(rad_miss, 2),
+        risk_level=_risk_level_from_dv(rad_dv),
+        explanation="Immediate radial burn to quickly disrupt conjunction geometry. Less fuel efficient than cross-track."
+    )
+
+    return {
+        "primary": primary,
+        "tradeoffs": [opt_max_sep, opt_fast]
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -315,7 +355,7 @@ def _build_explanation(
     )
 
 
-def _fallback_recommendation(threat_distance_km: float) -> ManeuverRecommendation:
+def _fallback_recommendation(threat_distance_km: float) -> dict:
     """
     Return a safe fallback recommendation when SGP4 propagation fails.
 
@@ -327,7 +367,7 @@ def _fallback_recommendation(threat_distance_km: float) -> ManeuverRecommendatio
     """
     delta_v = _compute_delta_v(threat_distance_km)
     new_miss = _estimate_new_miss_distance(threat_distance_km, delta_v)
-    return ManeuverRecommendation(
+    rec = ManeuverRecommendation(
         maneuver_type=_maneuver_type(delta_v),
         burn_direction={"x": 0.0, "y": 0.0, "z": 1.0},
         delta_v_m_s=round(delta_v, 4),
@@ -342,3 +382,4 @@ def _fallback_recommendation(threat_distance_km: float) -> ManeuverRecommendatio
             f"Recommended Δv = {delta_v:.3f} m/s along +Z axis."
         ),
     )
+    return {"primary": rec, "tradeoffs": []}

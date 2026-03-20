@@ -367,6 +367,94 @@ body {
   }
 }
 
+/* ── UI Risk Hierarchy Tints ────────────────────────────────────────────── */
+.bg-critical {
+  background: linear-gradient(145deg, rgba(244, 67, 54, 0.15) 0%, var(--bg-card) 100%) !important;
+  border-color: var(--risk-critical) !important;
+}
+
+.bg-warning {
+  background: linear-gradient(145deg, rgba(255, 152, 0, 0.15) 0%, var(--bg-card) 100%) !important;
+  border-color: var(--risk-warning) !important;
+}
+
+.bg-safe {
+  border-color: var(--risk-safe) !important;
+}
+
+.critical-headline {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+  line-height: 1;
+}
+
+.risk-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* ── Pipeline Step Tracker ──────────────────────────────────────────────── */
+.pipeline-tracker {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.72rem;
+}
+
+.pipeline-tracker .step {
+  color: var(--text-muted);
+  font-weight: 600;
+  opacity: 0.5;
+  transition: all 0.3s;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.pipeline-tracker .step.active {
+  color: var(--accent-cyan);
+  opacity: 1;
+}
+
+.pipeline-tracker .step.done {
+  color: var(--risk-safe);
+  opacity: 1;
+}
+
+/* ── Advanced Details Accordion ─────────────────────────────────────────── */
+.advanced-details {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.advanced-details summary {
+  color: var(--accent-blue);
+  cursor: pointer;
+  outline: none;
+  font-weight: 600;
+  list-style: none;
+}
+
+.advanced-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-details-content {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+
 .satellite-selector-wrapper {
   display: flex;
   gap: 10px;
@@ -405,4 +493,30 @@ body {
 
 .action-btn {
   margin-top: 6px;
+}
+
+/* ── Tradeoff Table ── */
+.tradeoff-table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+.tradeoff-table th {
+  text-align: left;
+  padding: 6px;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border);
+}
+.tradeoff-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.tradeoff-row--highlight {
+  background: rgba(0, 229, 255, 0.05);
+}
+.tradeoff-type {
+  font-weight: 600;
+  color: var(--accent-blue);
 }
