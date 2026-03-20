@@ -30,14 +30,26 @@ export default function App() {
   useEffect(() => {
     setPipelineStage('fetching_tle');
     fetch(`${API_URL}/satellites?limit=500`)
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setSatellites(data);
+        if (Array.isArray(data)) {
+          setSatellites(data);
+        } else {
+          console.error("Expected array but got:", data);
+          setSatellites([]);
+        }
         setPipelineStage('idle');
       })
       .catch(err => {
         console.error("Failed to fetch satellites:", err);
         setPipelineStage('idle');
+        setSatellites([]); // Fallback to an empty array so .find doesn't crash
       });
   }, []);
 
