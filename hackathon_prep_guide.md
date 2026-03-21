@@ -97,3 +97,35 @@ Judges love knowing *why* you picked your tools.
 3.  **Explain the Trade-offs:** Show the Maneuver Panel UI. Explain to the judges: *"We don't just tell the operator what to do. We give them options based on Fuel vs Safety. A cross-track burn saves orbital energy, while a radial burn is for emergencies."* This proves maturity in engineering design. 
 
 Good luck! You've built a genuinely complex, physics-accurate dashboard. Let the tech speak for itself.
+
+---
+
+## 💡 5. Concrete Examples to Explain to Judges
+
+Presenting raw math to judges can be dry. Use these exact, concrete analogies and example numbers when explaining how your physics engine works:
+
+### **Example 1: How SGP4 is Used in Your App**
+**The Scenario:** You receive a TLE (Two-Line Element) for *Satellite A (Aura)*. A TLE is just a snapshot of an orbit at a specific moment in time (an 'epoch'). 
+**The Problem:** If you just use simple math ($V = D/T$) to guess where Aura will be 24 hours from now, your answer will be wrong by kilometers because the Earth is bulging at the equator (throwing off gravity) and the thermosphere is dragging on the satellite.
+**The SGP4 Solution:** 
+1. The app feeds the Aura TLE into the Python `sgp4` library. 
+2. We ask it: *"Where is Aura exactly 24 hours from now?"*
+3. The SGP4 algorithm runs hundreds of mathematical perturbation models (modelling the specific shape of the Earth and atmospheric drag).
+4. **The Output:** It gives us an exact 3D Cartesian coordinate in space: `X: 4500km, Y: -2000km, Z: 5100km`. We do this for every 10-minute interval across 24 hours to trace the exact path the satellite will take.
+
+### **Example 2: Direction of Burn (The Cross Product)**
+**The Scenario:** *Satellite A* is flying horizontally forward at 7.5 km/s. A piece of *Debris* is coming down from above, threatening to T-bone it.
+**The Problem:** If the operator panics and just fires the main thrusters backwards (Retrograde burn) to hit the brakes, *Satellite A* will slow down. In orbital mechanics, if you slow down, you drop in altitude. We've avoided the debris, but now the satellite is falling out of its mission orbit.
+**Our Engine's Solution (Cross-Track Burn):** 
+1. Our engine takes the satellite's **Velocity Vector** (pointing forward: `[1, 0, 0]`).
+2. It takes the **Threat Vector** (the direction the debris is coming from, e.g., straight down: `[0, 1, 0]`).
+3. It calculates the **Cross Product** of these two. The cross product of "Forward" and "Down" is "Left" (`[0, 0, 1]`).
+4. **The Output:** The engine tells the operator: *"Fire your side thrusters to push the satellite to the Left."* This tilts the orbital plane slightly out of the way of the debris without changing the satellite's forward speed or altitude. The mission is saved.
+
+### **Example 3: Delta-V ($\Delta v$) and Fuel Cost**
+**The Scenario:** You need to perform the avoidance maneuver we just calculated.
+**The Problem:** In space, there are no gas stations. Satellites carry a fixed amount of fuel for their entire 10-year lifespan. This is measured as a total "Delta-V Budget", usually around $\Delta v = 200\text{ m/s}$. Every maneuver permanently spends some of this budget.
+**Our Engine's Solution:** 
+1. Our engine looks at the Miss Distance. If the debris is passing at a terrifyingly close **1 km**, we need an aggressive, hard shove. The engine recommends a burn of **$\Delta v = 5.0\text{ m/s}$**.
+2. **Fuel Cost Calculation:** We take that required $\Delta v$ and divide it by the satellite's lifetime budget: `(5.0 / 200.0) * 100 = 2.5%`. 
+3. **The Output:** The UI warns the operator: *"This aggressive emergency maneuver will consume 2.5% of the satellite's entire lifetime fuel."* If the debris is further away (e.g., 40 km), the engine only recommends a microscopic nudge of **$\Delta v = 0.5\text{ m/s}$**, costing barely **0.25%** of the fuel. This proves to judges that we treat space assets realistically.
