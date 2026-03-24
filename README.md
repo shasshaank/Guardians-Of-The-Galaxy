@@ -12,9 +12,9 @@
 ---
 
 ## 🏆 Awards & Recognition
-* [cite_start]**Ranked 9th out of 389 teams** at the **IIT Hyderabad Technical Showcase (Mar 2026)**.
-* [cite_start]Presented real-time satellite collision detection systems to **IIT faculty and industry experts**.
-* [cite_start]Commended for integrating **SGP4 orbital propagation** with a physics-based maneuver advisor.
+* **Ranked 9th out of 389 teams** at the **IIT Hyderabad Technical Showcase (Mar 2026)**.
+* Presented real-time satellite collision detection systems to **IIT faculty and industry experts**.
+* Commended for integrating **SGP4 orbital propagation** with a physics-based maneuver advisor.
 
 ---
 
