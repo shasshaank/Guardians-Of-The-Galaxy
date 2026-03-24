@@ -1,5 +1,5 @@
 # 🛰 Orbital Guardian
-
+### **Top 9 @ IIT Hyderabad Technical Showcase (Out of 389+ Teams)**
 > **AI-Powered Space Debris Collision Prediction & Avoidance System**
 
 
@@ -8,6 +8,13 @@
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg)
 ![Three.js](https://img.shields.io/badge/Three.js-r160-black.svg)
+
+---
+
+## 🏆 Awards & Recognition
+* [cite_start]**Ranked 9th out of 389 teams** at the **IIT Hyderabad Technical Showcase (Mar 2026)**.
+* [cite_start]Presented real-time satellite collision detection systems to **IIT faculty and industry experts**.
+* [cite_start]Commended for integrating **SGP4 orbital propagation** with a physics-based maneuver advisor.
 
 ---
 
